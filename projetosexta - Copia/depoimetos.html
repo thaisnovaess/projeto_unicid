@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Chat Usuários</title>
+   <link rel="stylesheet" href="style_depoimento.css">
+</head>
+<body>
+
+<div id="chatContainer">
+  <div id="messages"></div>
+
+  <div id="inputContainer">
+    <input type="text" id="userInput" placeholder="Digite sua mensagem...">
+    <button id="sendBtn">Enviar</button>
+  </div>
+</div>
+
+<script>
+const sendBtn = document.getElementById("sendBtn");
+const userInput = document.getElementById("userInput");
+const messagesDiv = document.getElementById("messages");
+
+// Adiciona mensagem na tela (apenas usuários)
+function addMessage(text) {
+  const p = document.createElement("p");
+  p.textContent = text;
+  messagesDiv.appendChild(p);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Envia mensagem para o backend
+async function sendMessageToServer(text) {
+  await fetch('http://localhost:3000/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sender: "Usuário", text })
+  });
+}
+
+// Carrega todas as mensagens do banco
+async function loadMessages() {
+  const res = await fetch('http://localhost:3000/messages');
+  const messages = await res.json();
+  messages.forEach(msg => addMessage(msg.text));
+}
+
+// Evento do botão enviar
+sendBtn.addEventListener("click", async () => {
+  const text = userInput.value.trim();
+  if (!text) return;
+  addMessage(text);          // mostra na tela
+  await sendMessageToServer(text); // salva no banco
+  userInput.value = "";
+});
+
+// Envia mensagem ao apertar Enter
+userInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendBtn.click();
+});
+
+// Carrega mensagens ao abrir a página
+loadMessages();
+</script>
+
+</body>
+</html>
